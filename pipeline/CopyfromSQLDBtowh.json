@@ -1,0 +1,1241 @@
+{
+	"name": "CopyfromSQLDBtowh",
+	"properties": {
+		"description": "this will help us to copy the tables from SQL DB to Data warehouse",
+		"activities": [
+			{
+				"name": "ForEach_er3",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.cw_items",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_er3",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "SalesLT.@{item().source.table}"
+								},
+								{
+									"name": "Destination",
+									"value": "SalesLT.@{item().destination.table}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource"
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"allowPolyBase": true,
+									"preCopyScript": {
+										"value": "@item().copySink.preCopyScript",
+										"type": "Expression"
+									},
+									"polyBaseSettings": {
+										"rejectValue": 0,
+										"rejectType": "value",
+										"useTypeDefault": false
+									}
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "SourceBlobStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "vickyinput"
+								},
+								"translator": {
+									"value": "@item().copyActivity.translator",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SourceDataset_er3",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_table": "@item().source.table"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DestinationDataset_er3",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_table": "@item().destination.table"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"cw_items": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": {
+							"table": "Address"
+						},
+						"destination": {
+							"table": "Address"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[Address]', 'U') IS NULL CREATE TABLE [SalesLT].[Address] ([CountryRegion] nvarchar(50),\n[PostalCode] nvarchar(15),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[AddressID] int,\n[AddressLine1] nvarchar(60),\n[AddressLine2] nvarchar(60),\n[City] nvarchar(30),\n[StateProvince] nvarchar(50));\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "String",
+											"name": "CountryRegion"
+										},
+										"sink": {
+											"type": "String",
+											"name": "CountryRegion"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "PostalCode"
+										},
+										"sink": {
+											"type": "String",
+											"name": "PostalCode"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "AddressID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "AddressID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "AddressLine1"
+										},
+										"sink": {
+											"type": "String",
+											"name": "AddressLine1"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "AddressLine2"
+										},
+										"sink": {
+											"type": "String",
+											"name": "AddressLine2"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "City"
+										},
+										"sink": {
+											"type": "String",
+											"name": "City"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "StateProvince"
+										},
+										"sink": {
+											"type": "String",
+											"name": "StateProvince"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "Customer"
+						},
+						"destination": {
+							"table": "Customer"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[Customer]', 'U') IS NULL CREATE TABLE [SalesLT].[Customer] ([EmailAddress] nvarchar(50),\n[Phone] nvarchar(25),\n[PasswordHash] varchar(128),\n[PasswordSalt] varchar(10),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[FirstName] nvarchar(50),\n[MiddleName] nvarchar(50),\n[LastName] nvarchar(50),\n[Suffix] nvarchar(10),\n[CompanyName] nvarchar(128),\n[SalesPerson] nvarchar(256),\n[CustomerID] int,\n[NameStyle] bit,\n[Title] nvarchar(8));\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "String",
+											"name": "EmailAddress"
+										},
+										"sink": {
+											"type": "String",
+											"name": "EmailAddress"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Phone"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Phone"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "PasswordHash"
+										},
+										"sink": {
+											"type": "String",
+											"name": "PasswordHash"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "PasswordSalt"
+										},
+										"sink": {
+											"type": "String",
+											"name": "PasswordSalt"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "FirstName"
+										},
+										"sink": {
+											"type": "String",
+											"name": "FirstName"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "MiddleName"
+										},
+										"sink": {
+											"type": "String",
+											"name": "MiddleName"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "LastName"
+										},
+										"sink": {
+											"type": "String",
+											"name": "LastName"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Suffix"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Suffix"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "CompanyName"
+										},
+										"sink": {
+											"type": "String",
+											"name": "CompanyName"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "SalesPerson"
+										},
+										"sink": {
+											"type": "String",
+											"name": "SalesPerson"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "CustomerID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "CustomerID"
+										}
+									},
+									{
+										"source": {
+											"type": "Boolean",
+											"name": "NameStyle"
+										},
+										"sink": {
+											"type": "Boolean",
+											"name": "NameStyle"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Title"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Title"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "CustomerAddress"
+						},
+						"destination": {
+							"table": "CustomerAddress"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[CustomerAddress]', 'U') IS NULL CREATE TABLE [SalesLT].[CustomerAddress] ([CustomerID] int,\n[AddressID] int,\n[AddressType] nvarchar(50),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Int32",
+											"name": "CustomerID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "CustomerID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "AddressID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "AddressID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "AddressType"
+										},
+										"sink": {
+											"type": "String",
+											"name": "AddressType"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "Product"
+						},
+						"destination": {
+							"table": "Product"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[Product]', 'U') IS NULL CREATE TABLE [SalesLT].[Product] ([ProductID] int,\n[ThumbNailPhoto] varbinary(8000),\n[ThumbnailPhotoFileName] nvarchar(50),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[Weight] decimal(8,2),\n[ProductCategoryID] int,\n[ProductModelID] int,\n[SellStartDate] datetime,\n[SellEndDate] datetime,\n[DiscontinuedDate] datetime,\n[Name] nvarchar(50),\n[ProductNumber] nvarchar(25),\n[Color] nvarchar(15),\n[StandardCost] money,\n[ListPrice] money,\n[Size] nvarchar(5));\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductID"
+										}
+									},
+									{
+										"source": {
+											"type": "Byte[]",
+											"name": "ThumbNailPhoto"
+										},
+										"sink": {
+											"type": "Byte[]",
+											"name": "ThumbNailPhoto"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "ThumbnailPhotoFileName"
+										},
+										"sink": {
+											"type": "String",
+											"name": "ThumbnailPhotoFileName"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "Weight"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "Weight"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductCategoryID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductCategoryID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductModelID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductModelID"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "SellStartDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "SellStartDate"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "SellEndDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "SellEndDate"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "DiscontinuedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "DiscontinuedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Name"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Name"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "ProductNumber"
+										},
+										"sink": {
+											"type": "String",
+											"name": "ProductNumber"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Color"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Color"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "StandardCost"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "StandardCost"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "ListPrice"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "ListPrice"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Size"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Size"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "ProductCategory"
+						},
+						"destination": {
+							"table": "ProductCategory"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductCategory]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductCategory] ([rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[ProductCategoryID] int,\n[ParentProductCategoryID] int,\n[Name] nvarchar(50));\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductCategoryID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductCategoryID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ParentProductCategoryID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ParentProductCategoryID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Name"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Name"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "ProductDescription"
+						},
+						"destination": {
+							"table": "ProductDescription"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductDescription]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductDescription] ([ModifiedDate] datetime,\n[ProductDescriptionID] int,\n[Description] nvarchar(400),\n[rowguid] uniqueidentifier);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductDescriptionID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductDescriptionID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Description"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Description"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "ProductModel"
+						},
+						"destination": {
+							"table": "ProductModel"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductModel]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductModel] ([ProductModelID] int,\n[Name] nvarchar(50),\n[CatalogDescription] varchar(8000),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductModelID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductModelID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Name"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Name"
+										}
+									},
+									{
+										"source": {
+											"type": "Xml",
+											"name": "CatalogDescription"
+										},
+										"sink": {
+											"type": "String",
+											"name": "CatalogDescription"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "ProductModelProductDescription"
+						},
+						"destination": {
+							"table": "ProductModelProductDescription"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductModelProductDescription]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductModelProductDescription] ([ProductModelID] int,\n[ProductDescriptionID] int,\n[Culture] nchar(6),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductModelID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductModelID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductDescriptionID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductDescriptionID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Culture"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Culture"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "SalesOrderDetail"
+						},
+						"destination": {
+							"table": "SalesOrderDetail"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[SalesOrderDetail]', 'U') IS NULL CREATE TABLE [SalesLT].[SalesOrderDetail] ([SalesOrderID] int,\n[SalesOrderDetailID] int,\n[OrderQty] smallint,\n[ProductID] int,\n[UnitPrice] money,\n[UnitPriceDiscount] money,\n[LineTotal] decimal(38,6),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Int32",
+											"name": "SalesOrderID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "SalesOrderID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "SalesOrderDetailID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "SalesOrderDetailID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int16",
+											"name": "OrderQty"
+										},
+										"sink": {
+											"type": "Int16",
+											"name": "OrderQty"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ProductID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ProductID"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "UnitPrice"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "UnitPrice"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "UnitPriceDiscount"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "UnitPriceDiscount"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "LineTotal"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "LineTotal"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "SalesOrderHeader"
+						},
+						"destination": {
+							"table": "SalesOrderHeader"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[SalesOrderHeader]', 'U') IS NULL CREATE TABLE [SalesLT].[SalesOrderHeader] ([SalesOrderID] int,\n[RevisionNumber] tinyint,\n[OrderDate] datetime,\n[DueDate] datetime,\n[ShipDate] datetime,\n[Status] tinyint,\n[TotalDue] money,\n[Comment] nvarchar(4000),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[BillToAddressID] int,\n[ShipMethod] nvarchar(50),\n[CreditCardApprovalCode] varchar(15),\n[SubTotal] money,\n[TaxAmt] money,\n[Freight] money,\n[OnlineOrderFlag] bit,\n[SalesOrderNumber] nvarchar(25),\n[PurchaseOrderNumber] nvarchar(25),\n[AccountNumber] nvarchar(15),\n[CustomerID] int,\n[ShipToAddressID] int);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"type": "Int32",
+											"name": "SalesOrderID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "SalesOrderID"
+										}
+									},
+									{
+										"source": {
+											"type": "Byte",
+											"name": "RevisionNumber"
+										},
+										"sink": {
+											"type": "Byte",
+											"name": "RevisionNumber"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "OrderDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "OrderDate"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "DueDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "DueDate"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ShipDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ShipDate"
+										}
+									},
+									{
+										"source": {
+											"type": "Byte",
+											"name": "Status"
+										},
+										"sink": {
+											"type": "Byte",
+											"name": "Status"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "TotalDue"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "TotalDue"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "Comment"
+										},
+										"sink": {
+											"type": "String",
+											"name": "Comment"
+										}
+									},
+									{
+										"source": {
+											"type": "Guid",
+											"name": "rowguid"
+										},
+										"sink": {
+											"type": "Guid",
+											"name": "rowguid"
+										}
+									},
+									{
+										"source": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										},
+										"sink": {
+											"type": "DateTime",
+											"name": "ModifiedDate"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "BillToAddressID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "BillToAddressID"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "ShipMethod"
+										},
+										"sink": {
+											"type": "String",
+											"name": "ShipMethod"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "CreditCardApprovalCode"
+										},
+										"sink": {
+											"type": "String",
+											"name": "CreditCardApprovalCode"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "SubTotal"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "SubTotal"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "TaxAmt"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "TaxAmt"
+										}
+									},
+									{
+										"source": {
+											"type": "Decimal",
+											"name": "Freight"
+										},
+										"sink": {
+											"type": "Decimal",
+											"name": "Freight"
+										}
+									},
+									{
+										"source": {
+											"type": "Boolean",
+											"name": "OnlineOrderFlag"
+										},
+										"sink": {
+											"type": "Boolean",
+											"name": "OnlineOrderFlag"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "SalesOrderNumber"
+										},
+										"sink": {
+											"type": "String",
+											"name": "SalesOrderNumber"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "PurchaseOrderNumber"
+										},
+										"sink": {
+											"type": "String",
+											"name": "PurchaseOrderNumber"
+										}
+									},
+									{
+										"source": {
+											"type": "String",
+											"name": "AccountNumber"
+										},
+										"sink": {
+											"type": "String",
+											"name": "AccountNumber"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "CustomerID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "CustomerID"
+										}
+									},
+									{
+										"source": {
+											"type": "Int32",
+											"name": "ShipToAddressID"
+										},
+										"sink": {
+											"type": "Int32",
+											"name": "ShipToAddressID"
+										}
+									}
+								]
+							}
+						}
+					}
+				]
+			}
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

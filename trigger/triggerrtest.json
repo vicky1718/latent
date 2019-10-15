@@ -1,0 +1,24 @@
+{
+	"name": "triggerrtest",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "copyfromblobtoblob",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/trail/blobs/",
+			"blobPathEndsWith": ".csv",
+			"scope": "/subscriptions/db232d2c-55d9-4055-903b-3b39f8db7928/resourceGroups/Vickytraining/providers/Microsoft.Storage/storageAccounts/vickytr",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
